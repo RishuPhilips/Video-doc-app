@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import {
   Text,
   View,
@@ -7,179 +6,381 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { AuthContext } from '../context/AuthContext';
+import { useData } from '../context/VideoDocContext';
 
-const MOCK_VIDEOS = [
-  {
-    id: 'vid-1',
-    title: 'React Native FlatList Basics',
-    thumbnail: 'https://i.ytimg.com/vi/5VbAwhBBHsg/hqdefault.jpg',
-    url: 'https://www.youtube.com/watch?v=5VbAwhBBHsg',
-  },
-  {
-    id: 'vid-2',
-    title: 'Firebase Auth in RN',
-    thumbnail: 'https://i.ytimg.com/vi/zQyrwxMPm88/hqdefault.jpg',
-    url: 'https://www.youtube.com/watch?v=zQyrwxMPm88',
-  },
-  {
-    id: 'vid-3',
-    title: 'Navigation Stack vs Tabs',
-    thumbnail: 'https://i.ytimg.com/vi/WzQnPN8fTnQ/hqdefault.jpg',
-    url: 'https://www.youtube.com/watch?v=WzQnPN8fTnQ',
-  },
-];
-
-
-const DOCUMENTS = [
-  {
-    id: 'doc-1',
-    name: 'Project Requirements.pdf',
-    type: 'pdf',
-    size: '1.2 MB',
-    url: 'https://example.com/files/requirements.pdf',
-  },
-  {
-    id: 'doc-2',
-    name: 'API Spec.docx',
-    type: 'docx',
-    size: '850 KB',
-    url: 'https://example.com/files/api-spec.docx',
-  },
-  
-{
-    id: 'doc-3',
-    name: 'Release Notes.md',
-    type: 'md',
-    size: '54 KB',
-    url: 'https://example.com/files/release-notes.md',
-  },
-
-]
+const DOCS_PAGE_SIZE = 10;
+const YT_PAGE_SIZE = 10; 
 
 export default function Home() {
-    const navigation = useNavigation();
-  const renderItem = ({ item }) => (
-    // <TouchableOpacity style={styles.card} onPress={() => { /* open item.url */ }}>
+  const navigation = useNavigation();
+
+  const { user } = useContext(AuthContext);
+
+  const { getVideosFirstPage, getVideosNextPage, getDocsAll } = useData();
+  console.log('Home rendered with user:',getDocsAll);
+
+  // ==== Videos state ====
+  const [videos, setVideos] = useState([]);
+  const [loadingVideos, setLoadingVideos] = useState(true);
+  const [refreshingVideos, setRefreshingVideos] = useState(false);
+  const [loadingMoreVideos, setLoadingMoreVideos] = useState(false);
+  const [videosNextToken, setVideosNextToken] = useState(null);
+  const [videosHasMore, setVideosHasMore] = useState(true);
+
+  // ==== Docs state ====
+  const [docs, setDocs] = useState([]);
+  const [allDocs, setAllDocs] = useState([]); // full dataset from provider
+  const [loadingDocs, setLoadingDocs] = useState(true);
+  const [refreshingDocs, setRefreshingDocs] = useState(false);
+  const [loadingMoreDocs, setLoadingMoreDocs] = useState(false);
+  const [docsPage, setDocsPage] = useState(1);
+  const [docsHasMore, setDocsHasMore] = useState(true);
+
+  const [refreshingScreen, setRefreshingScreen] = useState(false);
+  const fetchVideosFirst = useCallback(async () => {
+    setLoadingVideos(true);
+    try {
+      const res = await getVideosFirstPage({ query: 'react native tutorials', pageSize: YT_PAGE_SIZE });
+      setVideos(res.items ?? []);
+      setVideosNextToken(res.nextPageToken ?? null);
+      setVideosHasMore(Boolean(res.nextPageToken));
+    } catch (e) {
+      console.log('[Home] videos first page error', e?.message);
+      setVideosHasMore(false);
+      setVideosNextToken(null);
+    } finally {
+      setLoadingVideos(false);
+      setRefreshingVideos(false);
+    }
+  }, [getVideosFirstPage]);
+
+  const fetchVideosNext = useCallback(async () => {
+    if (!videosHasMore || loadingMoreVideos) return;
+    setLoadingMoreVideos(true);
+    try {
+      const res = await getVideosNextPage({
+        query: 'react native tutorials',
+        pageSize: YT_PAGE_SIZE,
+        pageToken: videosNextToken,
+      });
+      setVideos((prev) => [...prev, ...(res.items ?? [])]);
+      setVideosNextToken(res.nextPageToken ?? null);
+      setVideosHasMore(Boolean(res.nextPageToken));
+    } catch (e) {
+      console.log('[Home] videos next page error', e?.message);
+      setVideosHasMore(false);
+    } finally {
+      setLoadingMoreVideos(false);
+    }
+  }, [videosHasMore, videosNextToken, loadingMoreVideos, getVideosNextPage]);
+
+  const onRefreshVideos = useCallback(async () => {
+    setRefreshingVideos(true);
+    setVideosHasMore(true);
+    setVideosNextToken(null);
+    await fetchVideosFirst();
+  }, [fetchVideosFirst]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      await fetchVideosFirst();
+      if (!mounted) return;
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [fetchVideosFirst]);
+
+  const fetchDocsAllFromContext = useCallback(async () => {
+    setLoadingDocs(true);
+    try {
+      const res = await getDocsAll();
+      const mapped = res.items ?? [];
+      setAllDocs(mapped);
+      setDocs(mapped.slice(0, DOCS_PAGE_SIZE));
+      setDocsPage(1);
+      setDocsHasMore(mapped.length > DOCS_PAGE_SIZE);
+    } catch (e) {
+      console.log('[Home] docs fetch error', e?.message);
+      setAllDocs([]);
+      setDocs([]);
+      setDocsHasMore(false);
+    } finally {
+      setLoadingDocs(false);
+      setRefreshingDocs(false);
+    }
+  }, [getDocsAll]);
+
+  const fetchDocsNextPage = useCallback(() => {
+    if (!docsHasMore || loadingMoreDocs) return;
+    setLoadingMoreDocs(true);
+    try {
+      const nextPage = docsPage + 1;
+      const nextSlice = allDocs.slice(0, nextPage * DOCS_PAGE_SIZE);
+      setDocs(nextSlice);
+      setDocsPage(nextPage);
+      setDocsHasMore(nextSlice.length < allDocs.length);
+    } catch (e) {
+      console.log('[Home] docs next page error', e?.message);
+      setDocsHasMore(false);
+    } finally {
+      setLoadingMoreDocs(false);
+    }
+  }, [docsHasMore, loadingMoreDocs, docsPage, allDocs]);
+
+  const onRefreshDocs = useCallback(async () => {
+    setRefreshingDocs(true);
+    await fetchDocsAllFromContext();
+  }, [fetchDocsAllFromContext]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      await fetchDocsAllFromContext();
+      if (!mounted) return;
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [fetchDocsAllFromContext]);
+
+  const onRefreshScreen = useCallback(async () => {
+    setRefreshingScreen(true);
+    await Promise.all([onRefreshVideos(), onRefreshDocs()]);
+    setRefreshingScreen(false);
+  }, [onRefreshVideos, onRefreshDocs]);
+
+  const userGreeting = useMemo(() => {
+    if (!user) return 'Hello!';
+    return `Hello ${user.displayName ??  'User'}`;
+  }, [user]);
+
+  const isPdf = (item) =>
+    ((item.type ?? '').toLowerCase() === 'pdf') || /\.pdf(\?.*)?$/i.test(item.url ?? '');
+
+  const renderVideoItem = ({ item }) => (
     <View style={styles.card}>
-        { console.log('Home screen rendered', item.thumbnail)}
       <Image source={{ uri: item.thumbnail }} style={styles.thumb} />
-      <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
-     {/* </TouchableOpacity> */}
+      <Text style={styles.title} numberOfLines={2}>
+        {item.title}
+      </Text>
     </View>
   );
 
-  
-const renderDocumentItem = ({ item }) => (
-    // <TouchableOpacity style={styles.card}
-    // //  onPress={() => openUrl(item.url)}
-    //  >
-    <View style={styles.card}>
+  const renderDocumentItem = ({ item }) => (
+    <View>
+      {console.log('Rendering document item:', item)}
+    <TouchableOpacity
+      style={styles.card}
+      activeOpacity={0.75}
+      onPress={() => {
+        if (!isPdf(item)) {
+          Alert.alert('Unsupported', 'Only PDF files can be previewed.');
+          return;
+        }
+        navigation.navigate('Document', { items: [item] });
+      }}
+    >
       <View style={styles.docIcon}>
-        <Text style={styles.docIconText}>
-          {/* {item.type.toUpperCase().slice(0, 3)} */}
-          {item.type}
-        </Text>
+        <Text style={styles.docIconText}>{(item.type ?? 'file').toUpperCase().slice(0, 4)}</Text>
       </View>
       <View style={styles.docMeta}>
-        <Text style={styles.docName} numberOfLines={1}>{item.name}</Text>
+        <Text style={styles.docName} numberOfLines={1}>
+          {item.name}
+        </Text>
         <Text style={styles.docSub}>{item.size}</Text>
       </View>
-    {/* </TouchableOpacity> */}
+    </TouchableOpacity>
     </View>
   );
 
-
   return (
-    <View style={styles.container}>
-        <Text style={styles.sectionTitle}>Hello Rishu</Text>
+    <ScrollView
+      style={styles.container}
+      refreshControl={<RefreshControl refreshing={refreshingScreen} onRefresh={onRefreshScreen} />}
+    >
+      <Text style={styles.Title}>{userGreeting}</Text>
 
- <View style={styles.header}>
+      {/* Videos section */}
+      <View style={styles.header}>
         <Text style={styles.sectionTitle}>Videos</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Video')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Video', { items: videos })}>
           <Text style={styles.viewAll}>View all</Text>
         </TouchableOpacity>
       </View>
 
-        <View>
-      <FlatList
-        data={MOCK_VIDEOS}
-        keyExtractor={(item) => item.id}
-        horizontal={true}
-        showsHorizontalScrollIndicator={false}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-      />
-      </View>
+      {loadingVideos ? (
+        <ActivityIndicator style={{ marginTop: 12 }} />
+      ) : (
+        <FlatList
+          data={videos}
+          keyExtractor={(item) => String(item.id)}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          renderItem={renderVideoItem}
+          contentContainerStyle={styles.listContent}
+          refreshing={refreshingVideos}
+          onRefresh={onRefreshVideos}
+          onEndReached={fetchVideosNext}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loadingMoreVideos ? (
+              <View style={styles.footer}>
+                <ActivityIndicator />
+                <Text style={styles.footerText}>Loading more…</Text>
+              </View>
+            ) : !videosHasMore ? (
+              <Text style={styles.footerText}>No more videos</Text>
+            ) : null
+          }
+        />
+      )}
 
-       <View style={styles.header}>
+      {/* Documents section */}
+      <View style={styles.header}>
         <Text style={styles.sectionTitle}>Documents</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Document')}>
+        <TouchableOpacity
+          onPress={() => {
+            const pdfItems = docs.filter(isPdf);
+            if (pdfItems.length === 0) {
+              Alert.alert('No PDFs', 'No PDF documents found in the current list.');
+              return;
+            }
+            navigation.navigate('Document', { items: pdfItems });
+          }}
+        >
           <Text style={styles.viewAll}>View all</Text>
         </TouchableOpacity>
       </View>
 
-        <View style={{marginBottom:20}}>
-      <FlatList
-        data={DOCUMENTS}
-        keyExtractor={(item) => item.id}
-        horizontal={true}
-        showsHorizontalScrollIndicator={false}
-        renderItem={renderDocumentItem}
-        contentContainerStyle={styles.listContent}
-      />
-      </View>
-    </View>
+      {loadingDocs ? (
+        <ActivityIndicator style={{ marginTop: 20 }} />
+      ) : (
+        <FlatList
+          data={docs}
+          keyExtractor={(item) => String(item.id)}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          renderItem={renderDocumentItem}
+          contentContainerStyle={[styles.listContent, { marginBottom: 20 }]}
+          refreshing={refreshingDocs}
+          onRefresh={onRefreshDocs}
+          onEndReached={fetchDocsNextPage}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loadingMoreDocs ? (
+              <View style={styles.footer}>
+                <ActivityIndicator />
+                <Text style={styles.footerText}>Loading more…</Text>
+              </View>
+            ) : !docsHasMore ? (
+              <Text style={styles.footerText}>No more documents</Text>
+            ) : null
+          }
+        />
+      )}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#fff', 
-    paddingTop: 16, 
-    paddingHorizontal: 16 
-},
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingTop: 16,
+    paddingHorizontal: 16,
+  },
   header: {
-     flexDirection: 'row', 
-     alignSelf: 'stretch',
-      alignItems: 'center',
-       justifyContent: 'space-between',
-       marginTop:30
-     }, 
+    flexDirection: 'row',
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 30,
+  },
   listContent: {
-     paddingRight: 12,
-     },
-  card: { 
-    width: 180, 
-    alignItems:'center',
-    borderColor:'gray',
-    borderWidth:2,
-    borderRadius:10,
-    margin:5,
-     height: 140,
-},
+    paddingRight: 12,
+  },
+  card: {
+    width: 180,
+    alignItems: 'center',
+    borderColor: '#eee',
+    borderWidth: 1,
+    borderRadius: 10,
+    marginHorizontal: 6,
+    padding: 6,
+    height: 160,
+    backgroundColor: '#fafafa',
+  },
   thumb: {
-     width: '100%', 
-     height: 100,
-      borderRadius: 10,
-       backgroundColor: '#eee' },
+    width: '100%',
+    height: 100,
+    borderRadius: 8,
+    backgroundColor: '#eee',
+  },
   title: {
-     fontSize: 12,
-      color: '#333', 
-      marginTop: 6 
-    },
-    
-sectionTitle: { 
-    fontSize: 16,
-     fontWeight: '600',
-      color: '#222' 
-},
-  viewAll: { 
+    fontSize: 12,
+    color: '#333',
+    marginTop: 6,
+    textAlign: 'center',
+  },
+   Title: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#222',
+  },
+  sectionTitle: {
     fontSize: 13,
-     color: '#3b82f6', 
-     fontWeight: '600' 
-}
-
+    fontWeight: '600',
+    color: '#222',
+    marginLeft:10
+  },
+  viewAll: {
+    fontSize: 13,
+    color: '#3b82f6',
+    fontWeight: '600',
+  },
+  docIcon: {
+    width: '100%',
+    height: 90,
+    borderRadius: 8,
+    backgroundColor: '#dbeafe',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  docIconText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1e3a8a',
+  },
+  docMeta: {
+    width: '100%',
+    marginTop: 6,
+    alignItems: 'center',
+  },
+  docName: {
+    fontSize: 12,
+    color: '#333',
+  },
+  docSub: {
+    fontSize: 11,
+    color: '#666',
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  footerText: {
+    marginLeft: 8,
+    color: 'red',
+  },
 });

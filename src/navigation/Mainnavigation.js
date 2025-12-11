@@ -3,6 +3,8 @@ import React from 'react';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { useColorScheme } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { AuthProvider } from './../context/AuthContext';
+import {DataProvider} from './../context/VideoDocContext';
 import Registration from './../screens/auth/Registration';
 import Login from './../screens/auth/Login';
 import Home from './../screens/Home';
@@ -15,6 +17,8 @@ export default function MainNavigation() {
   const isDark = useColorScheme() === 'dark';
 
   return (
+    <AuthProvider>
+      <DataProvider>
     <NavigationContainer theme={isDark ? DarkTheme : DefaultTheme}>
       <Stack.Navigator
         initialRouteName="Registration"
@@ -50,5 +54,7 @@ export default function MainNavigation() {
         />
       </Stack.Navigator>
     </NavigationContainer>
+    </DataProvider>
+    </AuthProvider>
   );
 }

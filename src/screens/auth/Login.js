@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   Text,
   View,
@@ -9,27 +8,25 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  ActivityIndicator,
+  ActivityIndicator
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import auth from '@react-native-firebase/auth';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { AuthContext } from './../../context/AuthContext';
 
-export default function Registration() {
+export default function Login() {
   const navigation = useNavigation();
-
- 
-  const [email, setEmail] = useState('');
+  const route = useRoute();
+  const { login, loading } = useContext(AuthContext); // ⛔ Removed isVerified
+  const prefilledEmail = (route && route.params && route.params.email) || '';
+  const [email, setEmail] = useState(prefilledEmail);
   const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState({  email: '', password: '' });
-  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({ email: '', password: '' });
 
   const validate = () => {
     let valid = true;
-    const nextErrors = {  email: '', password: '' };
-
-   
-
+    const nextErrors = { email: '', password: '' };
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!email.trim()) {
       nextErrors.email = 'Email is required';
       valid = false;
@@ -50,14 +47,39 @@ export default function Registration() {
     return valid;
   };
 
+  const onLogin = async () => {
+    if (!validate()) return;
+    const res = await login({ email, password });
+
+    if (!res.ok) {
+      const code = res.error && res.error.code;
+      let message = 'Something went wrong. Please try again.';
+
+      if (code === 'auth/invalid-email') {
+        message = 'The email address is invalid.';
+      } else if (code === 'auth/user-disabled') {
+        message = 'This account has been disabled.';
+      } else if (code === 'auth/user-not-found') {
+        message = 'No account found with this email.';
+      } else if (code === 'auth/wrong-password') {
+        message = 'Incorrect password. Please try again.';
+      } else if (code === 'auth/network-request-failed') {
+        message = 'Network error. Please check your connection.';
+      } else if (res.error && typeof res.error.message === 'string' && res.error.message.trim()) {
+        message = res.error.message;
+      }
+
+      Alert.alert('Login failed', message);
+      return;
+    }
+    navigation.navigate('Home');
+  };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.container}>
-  <Text style={styles.title}>Login</Text>
+        <Text style={styles.title}>Login</Text>
+
         {/* Email */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Email</Text>
@@ -87,15 +109,25 @@ export default function Registration() {
           {errors.password ? <Text style={styles.error}>{errors.password}</Text> : null}
         </View>
 
+        {/* Login Button */}
         <TouchableOpacity
           style={[styles.primaryBtn, loading && { opacity: 0.7 }]}
-          onPress={() => navigation.navigate('Home')}
+          onPress={onLogin}
+          disabled={loading}
         >
-         
-            <Text style={styles.primaryBtnText}>Login</Text>
-          
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryBtnText}>Login</Text>}
         </TouchableOpacity>
 
+        {/* Back to Registration */}
+        <TouchableOpacity
+          style={styles.linkBtn}
+          onPress={() => navigation.navigate('Registration')}
+          disabled={loading}
+        >
+          <Text style={styles.linkText}>
+            Dont have an account? <Text style={{ color: '#3b82f6' }}>SignUp</Text>
+          </Text>
+        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
@@ -106,22 +138,22 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 48,
-    backgroundColor: '#fff',
+    backgroundColor: '#fff'
   },
   title: {
     fontSize: 26,
     fontWeight: '700',
     color: '#222',
     marginBottom: 24,
-    textAlign: 'center',
+    textAlign: 'center'
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 16
   },
   label: {
     fontSize: 14,
     color: '#555',
-    marginBottom: 6,
+    marginBottom: 6
   },
   input: {
     height: 48,
@@ -131,15 +163,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     backgroundColor: '#fafafa',
     fontSize: 16,
-    color: '#222',
+    color: '#222'
   },
   inputError: {
-    borderColor: '#e53935',
+    borderColor: '#e53935'
   },
   error: {
     marginTop: 6,
     color: '#e53935',
-    fontSize: 12,
+    fontSize: 12
   },
   primaryBtn: {
     height: 48,
@@ -147,20 +179,20 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 8,
+    marginTop: 8
   },
   primaryBtnText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '600'
   },
   linkBtn: {
     marginTop: 16,
-    alignItems: 'center',
+    alignItems: 'center'
   },
   linkText: {
-    color: '#3b82f6',
+    color: '#555',
     fontSize: 14,
-    fontWeight: '500',
-  },
+    fontWeight: '500'
+  }
 });
