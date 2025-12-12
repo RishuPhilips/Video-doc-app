@@ -21,7 +21,7 @@ export default function MainNavigation() {
       <DataProvider>
     <NavigationContainer theme={isDark ? DarkTheme : DefaultTheme}>
       <Stack.Navigator
-        initialRouteName="Registration"
+        initialRouteName="Login"
         screenOptions={{
           headerShadowVisible: false,
           headerTitleAlign: 'center',
@@ -30,7 +30,7 @@ export default function MainNavigation() {
         <Stack.Screen
           name="Login"
           component={Login}
-          options={{ title: '' }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="Registration"

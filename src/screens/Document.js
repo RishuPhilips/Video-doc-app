@@ -157,7 +157,7 @@ export default function Document() {
           data={items}
           keyExtractor={(it) => String(it.id)}
           renderItem={renderItem}
-          contentContainerStyle={items.length === 0 ? styles.emptyContainer : null}
+          contentContainerStyle={items.length === 0 ? styles.emptyContainer : styles.listContainer}
           ListEmptyComponent={<Text style={styles.emptyText}>No documents to show</Text>}
         />
       )}
@@ -223,8 +223,7 @@ const styles = StyleSheet.create({
     fontSize: 20, 
     fontWeight: '700', 
     color: '#222', 
-    paddingHorizontal: 12, 
-    paddingTop: 12
+    paddingHorizontal: 20, 
    },
   loaderWrap: { 
     padding: 16 
@@ -261,6 +260,9 @@ const styles = StyleSheet.create({
      flexGrow: 1, 
      justifyContent: 'center', 
      padding: 24
+     },
+       listContainer: {
+        marginLeft:10
      },
   emptyText: { 
     textAlign: 'center', 

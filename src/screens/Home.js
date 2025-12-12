@@ -33,7 +33,7 @@ export default function Home() {
   const [loadingMoreVideos, setLoadingMoreVideos] = useState(false);
   const [videosNextToken, setVideosNextToken] = useState(null);
   const [videosHasMore, setVideosHasMore] = useState(true);
-
+console.log('videos:',videos);
   // ==== Docs state ====
   const [docs, setDocs] = useState([]);
   const [allDocs, setAllDocs] = useState([]); // full dataset from provider
@@ -52,7 +52,6 @@ export default function Home() {
       setVideosNextToken(res.nextPageToken ?? null);
       setVideosHasMore(Boolean(res.nextPageToken));
     } catch (e) {
-      console.log('[Home] videos first page error', e?.message);
       setVideosHasMore(false);
       setVideosNextToken(null);
     } finally {
@@ -181,13 +180,13 @@ export default function Home() {
     <TouchableOpacity
       style={styles.card}
       activeOpacity={0.75}
-      onPress={() => {
-        if (!isPdf(item)) {
-          Alert.alert('Unsupported', 'Only PDF files can be previewed.');
-          return;
-        }
-        navigation.navigate('Document', { items: [item] });
-      }}
+      // onPress={() => {
+      //   if (!isPdf(item)) {
+      //     Alert.alert('Unsupported', 'Only PDF files can be previewed.');
+      //     return;
+      //   }
+      //   navigation.navigate('Document', { items: [item] });
+      // }}
     >
       <View style={styles.docIcon}>
         <Text style={styles.docIconText}>{(item.type ?? 'file').toUpperCase().slice(0, 4)}</Text>
@@ -295,7 +294,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingTop: 16,
     paddingHorizontal: 16,
   },
   header: {
@@ -335,12 +333,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#222',
+    marginLeft:5,
   },
   sectionTitle: {
     fontSize: 13,
     fontWeight: '600',
     color: '#222',
-    marginLeft:10
+    marginLeft:5
   },
   viewAll: {
     fontSize: 13,
@@ -380,7 +379,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   footerText: {
-    marginLeft: 8,
+    marginLeft: 5,
     color: 'red',
   },
 });

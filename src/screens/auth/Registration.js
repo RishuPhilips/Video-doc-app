@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     fontWeight: '700', 
     color: '#222', 
     marginBottom: 24, 
-    textAlign: 'center' 
+    // textAlign: 'center' 
   },
   inputGroup: { 
     marginBottom: 16 
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     height: 48, 
     borderWidth: 1, 
     borderColor: '#ddd', 
-    borderRadius: 10, 
+    borderRadius:30, 
     paddingHorizontal: 12, 
     backgroundColor: '#fafafa', 
     fontSize: 16, 
@@ -166,11 +166,12 @@ const styles = StyleSheet.create({
     fontSize: 12 },
   primaryBtn: { 
     height: 48, 
-    backgroundColor: '#3b82f6', 
-    borderRadius: 10, 
+    backgroundColor: '#1e90ff', 
+    borderRadius: 30, 
     alignItems: 'center', 
     justifyContent: 'center', 
-    marginTop: 8 },
+    marginTop: 8 
+  },
   primaryBtnText: { 
     color: '#fff', 
     fontSize: 16, 

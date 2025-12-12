@@ -76,11 +76,13 @@ export default function Login() {
   };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1 }}>
       <View style={styles.container}>
         <Text style={styles.title}>Login</Text>
+        <Text style={styles.welcome}>Welcome to the app</Text>
 
         {/* Email */}
+        <View style={styles.inputContainer}>
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Email</Text>
           <TextInput
@@ -107,6 +109,7 @@ export default function Login() {
             returnKeyType="done"
           />
           {errors.password ? <Text style={styles.error}>{errors.password}</Text> : null}
+        </View>
         </View>
 
         {/* Login Button */}
@@ -138,28 +141,34 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 48,
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
   },
   title: {
     fontSize: 26,
     fontWeight: '700',
     color: '#222',
-    marginBottom: 24,
-    textAlign: 'center'
+    marginTop:20
+  },
+    inputContainer: {
+    marginTop: 24,
   },
   inputGroup: {
-    marginBottom: 16
+    marginBottom: 16,
+  },
+    welcome: {
+    fontSize: 18,
+    color: '#555'
   },
   label: {
     fontSize: 14,
     color: '#555',
-    marginBottom: 6
+    marginBottom: 6,
   },
   input: {
     height: 48,
     borderWidth: 1,
     borderColor: '#ddd',
-    borderRadius: 10,
+    borderRadius: 30,
     paddingHorizontal: 12,
     backgroundColor: '#fafafa',
     fontSize: 16,
@@ -175,8 +184,8 @@ const styles = StyleSheet.create({
   },
   primaryBtn: {
     height: 48,
-    backgroundColor: '#3b82f6',
-    borderRadius: 10,
+    backgroundColor: '#1e90ff',
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8

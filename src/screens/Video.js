@@ -183,8 +183,8 @@ export default function VideosScreen() {
           <Text style={{ marginTop: 8, color: '#666' }}>Loading videos…</Text>
         </View>
       ) : items.length === 0 ? (
-        <View style={{ padding: 16 }}>
-          <Text style={{ color: '#666' }}>No videos to display.</Text>
+        <View style={{ }}>
+          <Text style={{ color: '#666',marginLeft:20 }}>No videos to display.</Text>
         </View>
       ) : (
         <FlatList
@@ -246,7 +246,8 @@ const styles = StyleSheet.create({
   screenTitle: { 
     fontSize: 22, 
     fontWeight: '600', 
-    padding: 12 
+    marginLeft:20
+    
   },
   row: { 
     backgroundColor: '#f9f9f9',
