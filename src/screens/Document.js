@@ -67,7 +67,6 @@ export default function Document() {
       await Linking.openURL(url);
       return true;
     } catch (err) {
-      console.log('openURL failed, falling back to viewer:', err);
       return false;
     }
   };
@@ -80,7 +79,6 @@ export default function Document() {
       const list = Array.isArray(res.items) ? res.items : [];
       setItems(list);
     } catch (e) {
-      console.log('[Document] fetch error:', e?.message);
       setItems([]); 
     } finally {
       setLoading(false);

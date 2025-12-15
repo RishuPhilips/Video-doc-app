@@ -24,7 +24,6 @@ export default function Home() {
   const { user } = useContext(AuthContext);
 
   const { getVideosFirstPage, getVideosNextPage, getDocsAll } = useData();
-  console.log('Home rendered with user:',getDocsAll);
 
   // ==== Videos state ====
   const [videos, setVideos] = useState([]);
@@ -33,7 +32,6 @@ export default function Home() {
   const [loadingMoreVideos, setLoadingMoreVideos] = useState(false);
   const [videosNextToken, setVideosNextToken] = useState(null);
   const [videosHasMore, setVideosHasMore] = useState(true);
-console.log('videos:',videos);
   // ==== Docs state ====
   const [docs, setDocs] = useState([]);
   const [allDocs, setAllDocs] = useState([]); // full dataset from provider
@@ -73,7 +71,6 @@ console.log('videos:',videos);
       setVideosNextToken(res.nextPageToken ?? null);
       setVideosHasMore(Boolean(res.nextPageToken));
     } catch (e) {
-      console.log('[Home] videos next page error', e?.message);
       setVideosHasMore(false);
     } finally {
       setLoadingMoreVideos(false);
@@ -108,7 +105,6 @@ console.log('videos:',videos);
       setDocsPage(1);
       setDocsHasMore(mapped.length > DOCS_PAGE_SIZE);
     } catch (e) {
-      console.log('[Home] docs fetch error', e?.message);
       setAllDocs([]);
       setDocs([]);
       setDocsHasMore(false);
@@ -128,7 +124,6 @@ console.log('videos:',videos);
       setDocsPage(nextPage);
       setDocsHasMore(nextSlice.length < allDocs.length);
     } catch (e) {
-      console.log('[Home] docs next page error', e?.message);
       setDocsHasMore(false);
     } finally {
       setLoadingMoreDocs(false);
@@ -176,7 +171,6 @@ console.log('videos:',videos);
 
   const renderDocumentItem = ({ item }) => (
     <View>
-      {console.log('Rendering document item:', item)}
     <TouchableOpacity
       style={styles.card}
       activeOpacity={0.75}

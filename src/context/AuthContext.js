@@ -9,7 +9,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [idToken, setIdToken] = useState(null);
-console.log('AuthContext rendered with user:', user);
   useEffect(() => {
     const unsubscribe = auth().onAuthStateChanged(async (currentUser) => {
       setUser(currentUser || null);
@@ -19,9 +18,7 @@ console.log('AuthContext rendered with user:', user);
           const token = await currentUser.getIdToken();
           setIdToken(token);
           await AsyncStorage.setItem('@id_token', token);
-          console.log('[AuthState] user signed in, token stored', token);
         } catch (e) {
-          console.log('[AuthState] token fetch error:', e?.code, e?.message);
         }
       } else {
         setIdToken(null);
@@ -44,12 +41,10 @@ console.log('AuthContext rendered with user:', user);
       try {
         await cred.user.updateProfile({ displayName: trimmedName });
       } catch (e) {
-        console.log('[Auth] updateProfile error:', e?.code, e?.message);
       }
 
       return { ok: true, user: cred.user };
     } catch (error) {
-      console.log('[Auth] register error:', error?.code, error?.message);
       return { ok: false, error };
     } finally {
       setLoading(false);
@@ -66,7 +61,6 @@ console.log('AuthContext rendered with user:', user);
       await AsyncStorage.setItem('@id_token', token);
       return { ok: true, user: cred.user };
     } catch (error) {
-      console.log('[Auth] login error:', error?.code, error?.message);
       return { ok: false, error };
     } finally {
       setLoading(false);
@@ -80,7 +74,6 @@ console.log('AuthContext rendered with user:', user);
       await auth().signOut();
       return { ok: true };
     } catch (error) {
-      console.log('[Auth] logout error:', error?.code, error?.message);
       return { ok: false, error };
     } finally {
       setLoading(false);
@@ -97,7 +90,6 @@ console.log('AuthContext rendered with user:', user);
       await AsyncStorage.setItem('@id_token', token);
       return { ok: true, idToken: token };
     } catch (error) {
-      console.log('[Auth] refreshToken error:', error?.code, error?.message);
       return { ok: false, error };
     }
   };

@@ -78,7 +78,6 @@ export function DataProvider({ children }) {
         hasMore: Boolean(json && json.nextPageToken),
       };
     } catch (e) {
-      console.log('[DataContext] getVideosFirstPage error:', e && e.message);
       return { ok: false, items: [], nextPageToken: null, hasMore: false, reason: e && e.message };
     }
   };
@@ -129,7 +128,6 @@ export function DataProvider({ children }) {
         hasMore: Boolean(json && json.nextPageToken),
       };
     } catch (e) {
-      console.log('[DataContext] getVideosNextPage error:', e && e.message);
       return { ok: false, items: [], nextPageToken: null, hasMore: false, reason: e && e.message };
     }
   };
@@ -146,10 +144,8 @@ export function DataProvider({ children }) {
     try {
       const url = OPENALEX_ENDPOINT({ search: query, perPage: pageSize, page });
       const res = await fetch(url);
-      console.log('[DataContext] getDocsAll fetch URL:', url);
 
       if (!res.ok) {
-        console.warn('[DataContext] OpenAlex fetch failed:', res.status);
         return { ok: false, items: [], mock: false, reason: `HTTP ${res.status}` };
       }
 
@@ -184,7 +180,6 @@ export function DataProvider({ children }) {
       const hasMore = Boolean(json && json.meta && json.meta.next_page);
       return { ok: true, items, mock: false, hasMore };
     } catch (e) {
-      console.log('[DataContext] getDocsAll (OpenAlex) error:', e && e.message);
       return { ok: false, items: [], mock: false, reason: e && e.message };
     }
   };

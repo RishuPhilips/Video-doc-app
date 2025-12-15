@@ -54,7 +54,6 @@ export default function VideosScreen() {
       const list = (res.items && res.items.length > 0) ? res.items : SAMPLE_LIST;
       setItems(list);
     } catch (e) {
-      console.log('[VideosScreen] fetch error:', e?.message);
       setItems(SAMPLE_LIST);
     } finally {
       setLoading(false);
@@ -77,7 +76,6 @@ export default function VideosScreen() {
     try {
       AndroidPip.enterPipMode?.();
     } catch (error) {
-      console.log('Error entering PiP:', error);
     }
   };
   const enterFullscreen = async (item) => {
@@ -88,7 +86,6 @@ export default function VideosScreen() {
       }
       setWasPlaying(true);
     } catch (e) {
-      console.log('getCurrentTime error', e);
     }
     setFullscreenItem(item);
     Orientation.lockToLandscape();
@@ -152,10 +149,7 @@ export default function VideosScreen() {
                   else exitFullscreen();
                 }}
                 onChangeState={(s) => {
-                  console.log('[YouTube inline state]', s);
                 }}
-                onReady={() => console.log('[YouTube inline ready]')}
-                onError={(e) => console.log('[YouTube inline error]', e)}
               />
             </View>
           )}
@@ -215,15 +209,12 @@ export default function VideosScreen() {
                       await fullRef.current?.playVideo?.();
                     }
                   } catch (e) {
-                    console.log('[YouTube fullscreen seek/play error]', e);
                   }
                 }}
                 onFullScreenChange={(isFull) => {
                   if (isFull) Orientation.lockToLandscape();
                   else exitFullscreen();
                 }}
-                onChangeState={(s) => console.log('[YouTube fullscreen state]', s)}
-                onError={(e) => console.log('[YouTube fullscreen error]', e)}
               />
               <View style={styles.fullActions}>
                 <TouchableOpacity style={styles.fullBtn} onPress={exitFullscreen}>
