@@ -82,6 +82,35 @@ You've successfully run and modified your React Native App. :partying_face:
 - If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
 - If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
 
+
+## Architecture Overview
+This app follows a simple architecture:
+- **Screens**: Registration, Login, Home, Video, Document
+- **State Management**: React Context API for authentication and user data
+- **Networking**: Fetch for API calls
+- **APIs**:
+  - https://www.googleapis.com/youtube/v3/search (for Video)
+  - https://api.openalex.org/works (for document)
+
+  ## Setup Instruction
+  First, create the project using the command npx react-native init VideoDocsApp, then set up the environment by configuring JAVA_HOME, ANDROID_HOME, and the Android SDK path, and finally install dependencies by running npm install.
+
+  ## API Used
+  https://www.googleapis.com/youtube/v3/search (for YouTube Video)
+  https://api.openalex.org/works (for document)
+
+  ## Folder structure
+  root/
+├── android/           
+├── src/
+|   |__navigation       # for screen navigation
+│   |__ context/        # Context API for global state
+│   |__ screens/        # Registration, Login, Home, Video, Document
+|   |__ constant        # for API Key
+├── App.tsx             # Entry point
+└── README.md  
+
+
 # Troubleshooting
 
 If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.

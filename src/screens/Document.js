@@ -180,13 +180,14 @@ export default function Document() {
               }}
               style={styles.modeBtn}
             >
-              <Text style={styles.modeText}>🔄</Text>
+              <Text style={styles.modeText}>[]</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setZoomLevel(prev => Math.min(prev * 1.2, 5))} style={styles.modeBtn}>
-              <Text style={styles.modeText}>➕</Text>
+              <Text style={styles.modeText}>+</Text>
+
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setZoomLevel(prev => Math.max(prev / 1.2, 0.5))} style={styles.modeBtn}>
-              <Text style={styles.modeText}>➖</Text>
+              <Text style={styles.modeText}>-</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setPreviewUrl(null)} style={styles.closeBtn}>
               <Text style={styles.closeText}>×</Text>
@@ -275,16 +276,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#ddd',
     paddingHorizontal: 12,
+    justifyContent:'flex-end'
   },
   closeBtn: {
-    paddingVertical: 6,
+ paddingVertical: 6,
     paddingHorizontal: 8,
-    left:180
+    borderRadius: 6,
+    backgroundColor: '#dbeafe',
+    marginLeft: 8,
   },
   closeText: { 
     color: '#1e3a8a', 
     fontWeight: '600' ,
-    fontSize:24
   },
   modeBtn: {
     paddingVertical: 6,
@@ -295,7 +298,7 @@ const styles = StyleSheet.create({
   },
   modeText: { 
     color: '#1e3a8a', 
-    fontWeight: '600' 
+    fontWeight: '600' ,
   },
   viewerTitle: { 
     flex: 1, 

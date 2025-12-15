@@ -168,7 +168,7 @@ console.log('videos:',videos);
   const renderVideoItem = ({ item }) => (
     <View style={styles.card}>
       <Image source={{ uri: item.thumbnail }} style={styles.thumb} />
-      <Text style={styles.title} numberOfLines={2}>
+      <Text style={styles.title} numberOfLines={3}>
         {item.title}
       </Text>
     </View>
@@ -192,7 +192,7 @@ console.log('videos:',videos);
         <Text style={styles.docIconText}>{(item.type ?? 'file').toUpperCase().slice(0, 4)}</Text>
       </View>
       <View style={styles.docMeta}>
-        <Text style={styles.docName} numberOfLines={1}>
+        <Text style={styles.docName} numberOfLines={3}>
           {item.name}
         </Text>
         <Text style={styles.docSub}>{item.size}</Text>
@@ -307,26 +307,26 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   card: {
-    width: 180,
+    width: 150,
     alignItems: 'center',
     borderColor: '#eee',
     borderWidth: 1,
     borderRadius: 10,
     marginHorizontal: 6,
     padding: 6,
-    height: 160,
+    height: 200,
     backgroundColor: '#fafafa',
   },
   thumb: {
     width: '100%',
-    height: 100,
+    height: 115,
     borderRadius: 8,
     backgroundColor: '#eee',
   },
   title: {
     fontSize: 12,
     color: '#333',
-    marginTop: 6,
+    marginTop: 8,
     textAlign: 'center',
   },
    Title: {
@@ -336,15 +336,16 @@ const styles = StyleSheet.create({
     marginLeft:5,
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: 18,
     fontWeight: '600',
     color: '#222',
-    marginLeft:5
+    padding:8
   },
   viewAll: {
     fontSize: 13,
     color: '#3b82f6',
     fontWeight: '600',
+    padding:10
   },
   docIcon: {
     width: '100%',
