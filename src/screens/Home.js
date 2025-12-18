@@ -21,7 +21,7 @@ const YT_PAGE_SIZE = 10;
 export default function Home() {
   const navigation = useNavigation();
 
-  const { user } = useContext(AuthContext);
+  const { user , logout} = useContext(AuthContext);
 
   const { getVideosFirstPage, getVideosNextPage, getDocsAll } = useData();
 
@@ -34,7 +34,7 @@ export default function Home() {
   const [videosHasMore, setVideosHasMore] = useState(true);
   // ==== Docs state ====
   const [docs, setDocs] = useState([]);
-  const [allDocs, setAllDocs] = useState([]); // full dataset from provider
+  const [allDocs, setAllDocs] = useState([]);
   const [loadingDocs, setLoadingDocs] = useState(true);
   const [refreshingDocs, setRefreshingDocs] = useState(false);
   const [loadingMoreDocs, setLoadingMoreDocs] = useState(false);
@@ -174,13 +174,6 @@ export default function Home() {
     <TouchableOpacity
       style={styles.card}
       activeOpacity={0.75}
-      // onPress={() => {
-      //   if (!isPdf(item)) {
-      //     Alert.alert('Unsupported', 'Only PDF files can be previewed.');
-      //     return;
-      //   }
-      //   navigation.navigate('Document', { items: [item] });
-      // }}
     >
       <View style={styles.docIcon}>
         <Text style={styles.docIconText}>{(item.type ?? 'file').toUpperCase().slice(0, 4)}</Text>
@@ -194,6 +187,34 @@ export default function Home() {
     </TouchableOpacity>
     </View>
   );
+
+    
+  const handleLogout = useCallback(() => {
+      Alert.alert('Logout', 'Are you sure you want to log out?', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const res = await logout();
+              if (res?.ok) {
+                // Optional: ensure you land on Login screen after signOut
+                navigation.reset({
+                  index: 0,
+  
+    routes: [{ name: 'Login' }], // adjust to your auth route name
+                });
+              } else {
+                Alert.alert('Failed to logout', res?.error?.message ?? 'Please try again.');
+              }
+            } catch (e) {
+              Alert.alert('Failed to logout', e?.message ?? 'Please try again.');
+            }
+          },
+        },
+      ]);
+    }, [logout, navigation]);
 
   return (
     <ScrollView
@@ -280,6 +301,11 @@ export default function Home() {
           }
         />
       )}
+      <View style={styles.bottomBar}>
+        <TouchableOpacity onPress={handleLogout}>
+          <Text style={styles.bottomText}>Logout</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
@@ -377,4 +403,33 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     color: 'red',
   },
+  
+bottomBar: {
+//  position: 'absolute',
+//   right: 16,
+//   bottom: 0,
+//   backgroundColor: '#f3f4f6',
+//   paddingVertical: 10,
+//   paddingHorizontal: 14,
+//   borderRadius: 8,
+//   elevation: 5, // Android shadow
+//   shadowColor: '#000', // iOS shadow
+//   shadowOpacity: 0.2,
+//    shadowRadius: 4,
+//   shadowOffset: { width: 0, height: 2 },
+marginTop:80,
+marginLeft:300,
+backgroundColor: '#1e90ff',
+  paddingVertical: 10,
+  paddingHorizontal: 14,
+  borderRadius: 8,
+  elevation: 5, 
+},
+
+bottomText: {
+ fontSize: 14,
+  fontWeight: '600',
+  color: '#fff',
+ 
+}
 });

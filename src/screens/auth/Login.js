@@ -69,7 +69,7 @@ export default function Login() {
         message = res.error.message;
       }
 
-      Alert.alert('Login failed', message);
+      Alert.alert('Login failed', 'Invalid email or password. Please try again.');
       return;
     }
     navigation.navigate('Home');
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 48,
+    paddingTop: 150,
     backgroundColor: '#fff',
   },
   title: {

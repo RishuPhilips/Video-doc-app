@@ -1,63 +1,91 @@
+
 import React, { createContext, useContext, useMemo } from 'react';
 import { AuthContext } from './AuthContext';
-import { YOUTUBE_API_KEY } from '../constant/constant';
+import { PEXELS_API_KEY } from '../constant/constant';
 
 export const DataContext = createContext(null);
 
 export function DataProvider({ children }) {
   const { idToken } = useContext(AuthContext);
 
-  const mapYouTubeItems = (items) =>
-    items.map((it) => {
-      const videoId = (it && it.id && it.id.videoId) || it?.id;
-      const thumbs = (it && it.snippet && it.snippet.thumbnails) || {};
+  /**
+   * Maps Pexels video items to your app's item shape:
+   * { id, title, thumbnail, url }
+   * - thumbnail: use `image` or the first frame from `video_pictures`
+   * - url: choose a playable MP4 link from `video_files`
+   */
+  const mapPexelsItems = (videos = []) =>
+    videos.map((v) => {
+      const files = Array.isArray(v?.video_files) ? v.video_files : [];
+      const best =
+        files.find(
+          (f) =>
+            f.file_type === 'video/mp4' &&
+            (f.quality === 'hd' || (typeof f.width === 'number' && f.width >= 1280))
+        ) ||
+        files.find((f) => f.file_type === 'video/mp4') ||
+        files[0];
+
       const thumb =
-        (thumbs.high && thumbs.high.url) ||
-        (thumbs.medium && thumbs.medium.url) ||
-        (thumbs.default && thumbs.default.url) ||
+        v?.image ||
+        (Array.isArray(v?.video_pictures) && v.video_pictures[0]?.picture) ||
         'https://via.placeholder.com/480x270.png?text=No+Thumbnail';
 
+      const title =
+        (v?.user?.name && `Video by ${v.user.name}`) ||
+        (typeof v?.id !== 'undefined' ? `Video #${v.id}` : 'Untitled');
+
       return {
-        id: String(videoId || Math.random().toString(36)),
-        title: (it && it.snippet && it.snippet.title) || 'Untitled',
+        id: String(v?.id ?? Math.random().toString(36)),
+        title,
         thumbnail: thumb,
-        url: `https://www.youtube.com/watch?v=${videoId || ''}`,
+        url: best?.link || v?.url || '', // prefer direct file link for players; fallback to page URL
       };
     });
 
+  /**
+   * Documents mapping (unchanged)
+   */
   const mapDocsItems = (jsonArray) =>
     (Array.isArray(jsonArray) ? jsonArray : [])
       .filter((f) => f && f.type === 'file')
       .map((f) => {
-        const name = f && f.name ? f.name : 'Untitled';
+        const name = f?.name ? f.name : 'Untitled';
         const ext = name.includes('.') ? name.split('.').pop().toLowerCase() : 'file';
-        const sizeKB = f && f.size ? `${Math.round(f.size / 1024)} KB` : '';
+        const sizeKB = f?.size ? `${Math.round(f.size / 1024)} KB` : '';
         return {
-          id: String((f && (f.sha || f.path)) || Math.random().toString(36)),
+          id: String(f?.sha || f?.path || Math.random().toString(36)),
           name,
           type: ext,
           size: sizeKB,
-          url: (f && (f.download_url || f.html_url)) || '',
+          url: f?.download_url || f?.html_url || '',
         };
       });
 
-  const getVideosFirstPage = async ({ query = 'react native tutorials', pageSize = 10 } = {}) => {
+  /**
+   * Pexels first page:
+   * - Uses /videos/search with page=1 and per_page=pageSize
+   * - We compute hasMore via total_results or by whether items === pageSize
+   * - nextPageToken = '2' (string) if there are more results
+   */
+  const getVideosFirstPage = async ({ query = 'react native', pageSize = 10 } = {}) => {
     try {
-      if (!YOUTUBE_API_KEY) {
+      if (!PEXELS_API_KEY) {
         return {
           ok: false,
           items: [],
           nextPageToken: null,
           hasMore: false,
-          reason: 'Missing YOUTUBE_API_KEY',
+          reason: 'Missing PEXELS_API_KEY',
         };
       }
 
+      const page = 1;
       const url =
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=${pageSize}` +
-        `&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`;
+        `https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}` +
+        `&per_page=${pageSize}&page=${page}`;
 
-      const res = await fetch(url);
+      const res = await fetch(url, { headers: { Authorization: PEXELS_API_KEY } });
       const json = await res.json();
 
       if (!res.ok) {
@@ -66,31 +94,46 @@ export function DataProvider({ children }) {
           items: [],
           nextPageToken: null,
           hasMore: false,
-          reason: `HTTP ${res.status}: ${json && json.error && json.error.message ? json.error.message : 'Unknown error'}`,
+          reason: `HTTP ${res.status}: ${json?.error || 'Unknown error'}`,
         };
       }
 
-      const items = Array.isArray(json && json.items) ? json.items : [];
+      const videos = Array.isArray(json?.videos) ? json.videos : [];
+      const items = mapPexelsItems(videos);
+
+      const total = typeof json?.total_results === 'number' ? json.total_results : null;
+      const hasMore =
+        total != null ? page * pageSize < total : items.length === pageSize;
+
       return {
         ok: true,
-        items: mapYouTubeItems(items),
-        nextPageToken: (json && json.nextPageToken) || null,
-        hasMore: Boolean(json && json.nextPageToken),
+        items,
+        nextPageToken: hasMore ? String(page + 1) : null, // token is the next page number
+        hasMore,
       };
     } catch (e) {
-      return { ok: false, items: [], nextPageToken: null, hasMore: false, reason: e && e.message };
+      return { ok: false, items: [], nextPageToken: null, hasMore: false, reason: e?.message };
     }
   };
 
-  const getVideosNextPage = async ({ query = 'react native tutorials', pageSize = 10, pageToken } = {}) => {
+  /**
+   * Pexels next page:
+   * - Accepts pageToken (string/number) and treats it as the next `page`
+   * - Same endpoint as first page, with the provided page number
+   */
+  const getVideosNextPage = async ({
+    query = 'react native',
+    pageSize = 10,
+    pageToken,
+  } = {}) => {
     try {
-      if (!YOUTUBE_API_KEY) {
+      if (!PEXELS_API_KEY) {
         return {
           ok: false,
           items: [],
           nextPageToken: null,
           hasMore: false,
-          reason: 'Missing YOUTUBE_API_KEY',
+          reason: 'Missing PEXELS_API_KEY',
         };
       }
       if (!pageToken) {
@@ -103,11 +146,12 @@ export function DataProvider({ children }) {
         };
       }
 
+      const page = Number(pageToken) || 2;
       const url =
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=${pageSize}` +
-        `&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}&pageToken=${pageToken}`;
+        `https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}` +
+        `&per_page=${pageSize}&page=${page}`;
 
-      const res = await fetch(url);
+      const res = await fetch(url, { headers: { Authorization: PEXELS_API_KEY } });
       const json = await res.json();
 
       if (!res.ok) {
@@ -116,28 +160,39 @@ export function DataProvider({ children }) {
           items: [],
           nextPageToken: null,
           hasMore: false,
-          reason: `HTTP ${res.status}: ${json && json.error && json.error.message ? json.error.message : 'Unknown error'}`,
+          reason: `HTTP ${res.status}: ${json?.error || 'Unknown error'}`,
         };
       }
 
-      const items = Array.isArray(json && json.items) ? json.items : [];
+      const videos = Array.isArray(json?.videos) ? json.videos : [];
+      const items = mapPexelsItems(videos);
+
+      const total = typeof json?.total_results === 'number' ? json.total_results : null;
+      const hasMore =
+        total != null ? page * pageSize < total : items.length === pageSize;
+
       return {
         ok: true,
-        items: mapYouTubeItems(items),
-        nextPageToken: (json && json.nextPageToken) || null,
-        hasMore: Boolean(json && json.nextPageToken),
+        items,
+        nextPageToken: hasMore ? String(page + 1) : null,
+        hasMore,
       };
     } catch (e) {
-      return { ok: false, items: [], nextPageToken: null, hasMore: false, reason: e && e.message };
+      return { ok: false, items: [], nextPageToken: null, hasMore: false, reason: e?.message };
     }
   };
 
+  /**
+   * (Unchanged) OpenAlex endpoint & docs retrieval
+   */
   const OPENALEX_ENDPOINT = function ({
     search = 'react native',
     perPage = 12,
     page = 1,
   } = {}) {
-    return `https://api.openalex.org/works?search=${encodeURIComponent(search)}&filter=open_access.is_oa:true,has_fulltext:true&page=${page}&per_page=${perPage}&mailto=your-email@example.com`;
+    return `https://api.openalex.org/works?search=${encodeURIComponent(
+      search
+    )}&filter=open_access.is_oa:true,has_fulltext:true&page=${page}&per_page=${perPage}&mailto=your-email@example.com`;
   };
 
   const getDocsAll = async ({ query = 'react native', page = 1, pageSize = 12 } = {}) => {
@@ -150,25 +205,25 @@ export function DataProvider({ children }) {
       }
 
       const json = await res.json();
-      const works = Array.isArray(json && json.results) ? json.results : [];
+      const works = Array.isArray(json?.results) ? json.results : [];
 
       const items = works
         .map((w) => {
-          const primary = w && w.primary_location;
-          const locations = (w && w.locations) || [];
+          const primary = w?.primary_location;
+          const locations = w?.locations || [];
           const locs = [primary].concat(locations).filter(Boolean);
 
           const pdfUrl =
-            (locs.find((l) => l && l.pdf_url) || {}).pdf_url ||
+            (locs.find((l) => l?.pdf_url) || {}).pdf_url ||
             (locs.find((l) => {
-              const u = (l && l.landing_page_url) || '';
+              const u = l?.landing_page_url || '';
               return typeof u === 'string' && u.toLowerCase().endsWith('.pdf');
             }) || {}).landing_page_url ||
             '';
 
-          const displayName = (w && w.display_name) || 'Untitled';
+          const displayName = w?.display_name || 'Untitled';
           return {
-            id: String((w && w.id) || Math.random().toString(36)),
+            id: String(w?.id || Math.random().toString(36)),
             name: displayName.endsWith('.pdf') ? displayName : displayName + '.pdf',
             type: 'pdf',
             size: '',
@@ -177,10 +232,10 @@ export function DataProvider({ children }) {
         })
         .filter((f) => f.url && typeof f.url === 'string' && f.url.toLowerCase().endsWith('.pdf'));
 
-      const hasMore = Boolean(json && json.meta && json.meta.next_page);
+      const hasMore = Boolean(json?.meta?.next_page);
       return { ok: true, items, mock: false, hasMore };
     } catch (e) {
-      return { ok: false, items: [], mock: false, reason: e && e.message };
+      return { ok: false, items: [], mock: false, reason: e?.message };
     }
   };
 
@@ -195,7 +250,7 @@ export function DataProvider({ children }) {
       getVideosFirstPage,
       getVideosNextPage,
       getDocsAll,
-      mapYouTubeItems,
+      mapPexelsItems, // exposed for custom uses
       mapDocsItems,
       withAuthHeaders,
     }),
