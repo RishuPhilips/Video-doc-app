@@ -1,13 +1,7 @@
-
 import React from 'react';
 import { Text, Button } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 
-/**
- * SUPER-SIMPLE MOCK of the AuthContext module.
- * We avoid importing the real ./AuthContext (which may pull firebase),
- * and instead provide a tiny test implementation here.
- */
 jest.mock('./AuthContext', () => {
   const React = require('react');
 
@@ -27,7 +21,6 @@ jest.mock('./AuthContext', () => {
 
     const login = ({ email }) => {
       setLoading(true);
-      // Simulate async auth result
       setTimeout(() => {
         setUser({ email, emailVerified: false });
         setLoading(false);
@@ -53,11 +46,7 @@ jest.mock('./AuthContext', () => {
 
   return { AuthContext, AuthProvider };
 });
-
-// Use the MOCKED AuthContext + AuthProvider exported above
 import { AuthContext, AuthProvider } from './AuthContext';
-
-/** A tiny consumer component for assertions */
 function Consumer() {
   const { user, loading, isVerified, login, logout } =
     React.useContext(AuthContext);
@@ -86,7 +75,7 @@ const renderWithProvider = () =>
 
 describe('AuthContext (simple)', () => {
   beforeEach(() => {
-    jest.useFakeTimers(); // control setTimeout in our mock
+    jest.useFakeTimers();
     jest.clearAllMocks();
   });
 
@@ -101,7 +90,6 @@ describe('AuthContext (simple)', () => {
     expect(getByTestId('loading').props.children).toBe('false');
     expect(getByTestId('userEmail').props.children).toBe('null');
 
-    // isVerified is false when user === null
     expect(getByTestId('isVerified').props.children).toBe('false');
   });
 
@@ -109,10 +97,8 @@ describe('AuthContext (simple)', () => {
     const { getByText, getByTestId } = renderWithProvider();
 
     fireEvent.press(getByText(/login/i));
-    // loading becomes true just before the async completes
     expect(getByTestId('loading').props.children).toBe('true');
 
-    // Fast-forward our tiny timeout
     jest.advanceTimersByTime(15);
 
     await waitFor(() => {
@@ -125,7 +111,6 @@ describe('AuthContext (simple)', () => {
   test('logout -> user resets', async () => {
     const { getByText, getByTestId } = renderWithProvider();
 
-    // login first
     fireEvent.press(getByText(/login/i));
     jest.advanceTimersByTime(15);
 
@@ -133,7 +118,6 @@ describe('AuthContext (simple)', () => {
       expect(getByTestId('userEmail').props.children).toBe('rishu@example.com')
     );
 
-    // then logout
     fireEvent.press(getByText(/logout/i));
     expect(getByTestId('loading').props.children).toBe('true');
 

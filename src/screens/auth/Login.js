@@ -8,7 +8,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  Appearance
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { AuthContext } from './../../context/AuthContext';
@@ -21,7 +22,7 @@ export default function Login() {
   const [email, setEmail] = useState(prefilledEmail);
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({ email: '', password: '' });
-
+const isDark = Appearance.getColorScheme() === 'dark';
   const validate = () => {
     let valid = true;
     const nextErrors = { email: '', password: '' };
@@ -90,6 +91,7 @@ export default function Login() {
             onChangeText={setEmail}
             placeholder="Please enter your email"
             style={[styles.input, errors.email ? styles.inputError : null]}
+            placeholderTextColor={isDark ? '#9AA0A6' : '#6F7378'}
             autoCapitalize="none"
             keyboardType="email-address"
             returnKeyType="next"
@@ -105,6 +107,7 @@ export default function Login() {
             onChangeText={setPassword}
             placeholder="Please enter your password"
             style={[styles.input, errors.password ? styles.inputError : null]}
+            placeholderTextColor={isDark ? '#9AA0A6' : '#6F7378'}
             secureTextEntry
             returnKeyType="done"
           />

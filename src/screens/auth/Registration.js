@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import {
   Text, View, StyleSheet, TouchableOpacity, TextInput,
-  KeyboardAvoidingView, Platform, Alert, ActivityIndicator
+  KeyboardAvoidingView, Platform, Alert, ActivityIndicator, Appearance 
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { AuthContext } from './../../context/AuthContext';
@@ -13,7 +13,7 @@ export default function Registration() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({ name: '', email: '', password: '' });
-
+const isDark = Appearance.getColorScheme() === 'dark';
   const validate = () => {
     let valid = true;
     const nextErrors = { name: '', email: '', password: '' };
@@ -73,6 +73,7 @@ const onRegister = async () => {
             onChangeText={setName}
             placeholder="Please enter your full name"
             style={[styles.input, errors.name ? styles.inputError : null]}
+            placeholderTextColor={isDark ? '#9AA0A6' : '#6F7378'}
             autoCapitalize="words"
             returnKeyType="next"
           />
@@ -87,6 +88,7 @@ const onRegister = async () => {
             onChangeText={setEmail}
             placeholder="Please enter your email"
             style={[styles.input, errors.email ? styles.inputError : null]}
+            placeholderTextColor={isDark ? '#9AA0A6' : '#6F7378'}
             autoCapitalize="none"
             keyboardType="email-address"
             returnKeyType="next"
@@ -102,6 +104,7 @@ const onRegister = async () => {
             onChangeText={setPassword}
             placeholder="Please enter your password"
             style={[styles.input, errors.password ? styles.inputError : null]}
+            placeholderTextColor={isDark ? '#9AA0A6' : '#6F7378'}
             secureTextEntry
             returnKeyType="done"
           />
@@ -157,7 +160,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, 
     backgroundColor: '#fafafa', 
     fontSize: 16, 
-    color: '#222' },
+    color: '#222'
+   },
   inputError: { 
     borderColor: '#e53935' },
   error: { 

@@ -1,10 +1,6 @@
-
-// src/context/DataContext.test.js
 import React from 'react';
 import { render } from '@testing-library/react-native';
-
-// ⬅️ Import BOTH the DataProvider and the AuthContext
-import { DataProvider, DataContext } from './VideoDocContext'; // or './DataContext' (match your filename)
+import { DataProvider, DataContext } from './VideoDocContext'; 
 import { AuthContext } from './AuthContext';
 
 function TestComponent({ callback }) {

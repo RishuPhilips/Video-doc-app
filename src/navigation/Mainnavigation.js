@@ -40,7 +40,7 @@ export default function MainNavigation() {
         <Stack.Screen
           name="Home"
           component={Home}
-          options={{ title: '' }}
+          options={{ headerShown: false  }}
         />
          <Stack.Screen
           name="Video"

@@ -1,12 +1,6 @@
-
-// jest.config.js
 module.exports = {
   preset: 'react-native',
-
-  // Mocks that must exist before modules are loaded
   setupFiles: ['<rootDir>/jest.setup.js'],
-
-  // Matchers/extensions that rely on global `expect`
   setupFilesAfterEnv: ['<rootDir>/jest.setupEnv.js'],
 
   transformIgnorePatterns: [
@@ -14,4 +8,5 @@ module.exports = {
   ],
   moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx', 'json'],
 };
-``
+
+
