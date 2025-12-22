@@ -154,16 +154,13 @@ export default function VideosScreen() {
               ) : (
                 <Video
                   ref={inlineRef}
-                  source={{ uri: item.url }}      // Pexels MP4 link
+                  source={{ uri: item.url }}  
                   style={{ width: '100%', height: '100%', backgroundColor: '#000' }}
                   controls
                   paused={false}
                   resizeMode="cover"
-                  // Track time; we'll use it to restore in fullscreen
                   onProgress={({ currentTime }) => setSavedTime(currentTime)}
                   onError={(e) => console.log('inline video error', e)}
-                  // Optional: enable PiP via RN Video (simpler than WebView based players)
-                  // enterPictureInPictureOnLeave
                 />
               )}
             </View>
@@ -192,6 +189,7 @@ export default function VideosScreen() {
 
   return (
     <View style={styles.container}>
+      {/* <Text style={styles.header}>{headerTitle}</Text> */}
       {loading ? (
         <View style={{ padding: 16 }}>
           <ActivityIndicator />
@@ -226,13 +224,10 @@ export default function VideosScreen() {
                 resizeMode="cover"
                 onLoad={() => {
                   if (savedTime > 0) {
-                    // restore time in fullscreen
                     try { fullRef.current?.seek?.(savedTime); } catch {}
                   }
                 }}
                 onError={(e) => console.log('fullscreen video error', e)}
-                // Optional: enable PiP on leave app automatically
-                // enterPictureInPictureOnLeave
               />
               <View style={styles.fullActions}>
                 <TouchableOpacity style={styles.fullBtn} onPress={exitFullscreen}>
@@ -248,10 +243,23 @@ export default function VideosScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  row: { backgroundColor: '#f9f9f9', borderRadius: 8, overflow: 'hidden' },
-  thumbWrap: { height: 220, backgroundColor: '#000' },
-  thumb: { width: '100%', height: '100%' },
+  container: { 
+    flex: 1,
+     backgroundColor: '#fff' 
+    },
+  row: {
+     backgroundColor: '#f9f9f9', 
+     borderRadius: 8, 
+     overflow: 'hidden' 
+    },
+  thumbWrap: { 
+    height: 220, 
+    backgroundColor: '#000' 
+  },
+  thumb: {
+     width: '100%', 
+     height: '100%' 
+    },
   playBadge: {
     position: 'absolute',
     bottom: 8,
@@ -261,11 +269,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
-  playText: { color: '#fff', fontWeight: '700' },
-  playerInline: { height: 220 },
-  meta: { padding: 12 },
-  title: { fontSize: 16, color: '#111' },
-  modal: { flex: 1, backgroundColor: '#000' },
+    header: { 
+    fontSize: 20, 
+    fontWeight: '700', 
+    color: '#222', 
+    paddingHorizontal: 15, 
+   },
+  playText: { 
+    color: '#fff', 
+    fontWeight: '700' 
+  },
+  playerInline: { 
+    height: 220 
+  },
+  meta: {
+     padding: 12 
+    },
+  title: { 
+    fontSize: 16, 
+    color: '#111'
+   },
+  modal: { 
+    flex: 1,
+     backgroundColor: '#000' 
+    },
   fullActions: {
     position: 'absolute',
     top: 20,
@@ -279,6 +306,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#333',
     borderRadius: 6,
   },
-  fullTxt: { color: '#fff' },
+  fullTxt: { 
+    color: '#fff'
+   },
 });
 

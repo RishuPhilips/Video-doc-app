@@ -1,3 +1,4 @@
+
 import React, { useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import {
   Text,
@@ -22,7 +23,6 @@ export default function Home() {
   const navigation = useNavigation();
 
   const { user , logout} = useContext(AuthContext);
-
   const { getVideosFirstPage, getVideosNextPage, getDocsAll } = useData();
 
   // ==== Videos state ====
@@ -32,6 +32,7 @@ export default function Home() {
   const [loadingMoreVideos, setLoadingMoreVideos] = useState(false);
   const [videosNextToken, setVideosNextToken] = useState(null);
   const [videosHasMore, setVideosHasMore] = useState(true);
+
   // ==== Docs state ====
   const [docs, setDocs] = useState([]);
   const [allDocs, setAllDocs] = useState([]);
@@ -42,6 +43,7 @@ export default function Home() {
   const [docsHasMore, setDocsHasMore] = useState(true);
 
   const [refreshingScreen, setRefreshingScreen] = useState(false);
+
   const fetchVideosFirst = useCallback(async () => {
     setLoadingVideos(true);
     try {
@@ -171,146 +173,147 @@ export default function Home() {
 
   const renderDocumentItem = ({ item }) => (
     <View>
-    <TouchableOpacity
-      style={styles.card}
-      activeOpacity={0.75}
-    >
-      <View style={styles.docIcon}>
-        <Text style={styles.docIconText}>{(item.type ?? 'file').toUpperCase().slice(0, 4)}</Text>
-      </View>
-      <View style={styles.docMeta}>
-        <Text style={styles.docName} numberOfLines={3}>
-          {item.name}
-        </Text>
-        <Text style={styles.docSub}>{item.size}</Text>
-      </View>
-    </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.75}
+      >
+        <View style={styles.docIcon}>
+          <Text style={styles.docIconText}>{(item.type ?? 'file').toUpperCase().slice(0, 4)}</Text>
+        </View>
+        <View style={styles.docMeta}>
+          <Text style={styles.docName} numberOfLines={3}>
+            {item.name}
+          </Text>
+          <Text style={styles.docSub}>{item.size}</Text>
+        </View>
+      </TouchableOpacity>
     </View>
   );
 
-    
   const handleLogout = useCallback(() => {
-      Alert.alert('Logout', 'Are you sure you want to log out?', [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const res = await logout();
-              if (res?.ok) {
-                // Optional: ensure you land on Login screen after signOut
-                navigation.reset({
-                  index: 0,
-  
-    routes: [{ name: 'Login' }], // adjust to your auth route name
-                });
-              } else {
-                Alert.alert('Failed to logout', res?.error?.message ?? 'Please try again.');
-              }
-            } catch (e) {
-              Alert.alert('Failed to logout', e?.message ?? 'Please try again.');
+    Alert.alert('Logout', 'Are you sure you want to log out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const res = await logout();
+            if (res?.ok) {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Login' }], // adjust to your auth route name
+              });
+            } else {
+              Alert.alert('Failed to logout', res?.error?.message ?? 'Please try again.');
             }
-          },
+          } catch (e) {
+            Alert.alert('Failed to logout', e?.message ?? 'Please try again.');
+          }
         },
-      ]);
-    }, [logout, navigation]);
+      },
+    ]);
+  }, [logout, navigation]);
 
   return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshingScreen} onRefresh={onRefreshScreen} />}
-    >
-      <Text style={styles.Title}>{userGreeting}</Text>
+    <View style={styles.root}>
+      <ScrollView
+        style={styles.container}
+        refreshControl={<RefreshControl refreshing={refreshingScreen} onRefresh={onRefreshScreen} />}
+      >
+        <Text style={styles.Title}>{userGreeting}</Text>
 
-      {/* Videos section */}
-      <View style={styles.header}>
-        <Text style={styles.sectionTitle}>Videos</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Video', { items: videos })}>
-          <Text style={styles.viewAll}>View all</Text>
-        </TouchableOpacity>
-      </View>
+        {/* Videos section */}
+        <View style={styles.header}>
+          <Text style={styles.sectionTitle}>Videos</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Video', { items: videos })}>
+            <Text style={styles.viewAll}>View all</Text>
+          </TouchableOpacity>
+        </View>
 
-      {loadingVideos ? (
-        <ActivityIndicator style={{ marginTop: 12 }} />
-      ) : (
-        <FlatList
-          data={videos}
-          keyExtractor={(item) => String(item.id)}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          renderItem={renderVideoItem}
-          contentContainerStyle={styles.listContent}
-          refreshing={refreshingVideos}
-          onRefresh={onRefreshVideos}
-          onEndReached={fetchVideosNext}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={
-            loadingMoreVideos ? (
-              <View style={styles.footer}>
-                <ActivityIndicator />
-                <Text style={styles.footerText}>Loading more…</Text>
-              </View>
-            ) : !videosHasMore ? (
-              <Text style={styles.footerText}>No more videos</Text>
-            ) : null
-          }
-        />
-      )}
-
-      {/* Documents section */}
-      <View style={styles.header}>
-        <Text style={styles.sectionTitle}>Documents</Text>
-        <TouchableOpacity
-          onPress={() => {
-            const pdfItems = docs.filter(isPdf);
-            if (pdfItems.length === 0) {
-              Alert.alert('No PDFs', 'No PDF documents found in the current list.');
-              return;
+        {loadingVideos ? (
+          <ActivityIndicator style={{ marginTop: 12 }} />
+        ) : (
+          <FlatList
+            data={videos}
+            keyExtractor={(item) => String(item.id)}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            renderItem={renderVideoItem}
+            contentContainerStyle={styles.listContent}
+            refreshing={refreshingVideos}
+            onRefresh={onRefreshVideos}
+            onEndReached={fetchVideosNext}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={
+              loadingMoreVideos ? (
+                <View style={styles.footer}>
+                  <ActivityIndicator />
+                  <Text style={styles.footerText}>Loading more…</Text>
+                </View>
+              ) : !videosHasMore ? (
+                <Text style={styles.footerText}>No more videos</Text>
+              ) : null
             }
-            navigation.navigate('Document', { items: pdfItems });
-          }}
-        >
-          <Text style={styles.viewAll}>View all</Text>
-        </TouchableOpacity>
-      </View>
+          />
+        )}
 
-      {loadingDocs ? (
-        <ActivityIndicator style={{ marginTop: 20 }} />
-      ) : (
-        <FlatList
-          data={docs}
-          keyExtractor={(item) => String(item.id)}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          renderItem={renderDocumentItem}
-          contentContainerStyle={[styles.listContent, { marginBottom: 20 }]}
-          refreshing={refreshingDocs}
-          onRefresh={onRefreshDocs}
-          onEndReached={fetchDocsNextPage}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={
-            loadingMoreDocs ? (
-              <View style={styles.footer}>
-                <ActivityIndicator />
-                <Text style={styles.footerText}>Loading more…</Text>
-              </View>
-            ) : !docsHasMore ? (
-              <Text style={styles.footerText}>No more documents</Text>
-            ) : null
-          }
-        />
-      )}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity onPress={handleLogout}>
-          <Text style={styles.bottomText}>Logout</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+        {/* Documents section */}
+        <View style={styles.header}>
+          <Text style={styles.sectionTitle}>Documents</Text>
+          <TouchableOpacity
+            onPress={() => {
+              const pdfItems = docs.filter(isPdf);
+              if (pdfItems.length === 0) {
+                Alert.alert('No PDFs', 'No PDF documents found in the current list.');
+                return;
+              }
+              navigation.navigate('Document', { items: pdfItems });
+            }}
+          >
+            <Text style={styles.viewAll}>View all</Text>
+          </TouchableOpacity>
+        </View>
+
+        {loadingDocs ? (
+          <ActivityIndicator style={{ marginTop: 20 }} />
+        ) : (
+          <FlatList
+            data={docs}
+            keyExtractor={(item) => String(item.id)}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            renderItem={renderDocumentItem}
+            contentContainerStyle={[styles.listContent, { marginBottom: 20 }]}
+            refreshing={refreshingDocs}
+            onRefresh={onRefreshDocs}
+            onEndReached={fetchDocsNextPage}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={
+              loadingMoreDocs ? (
+                <View style={styles.footer}>
+                  <ActivityIndicator />
+                  <Text style={styles.footerText}>Loading more…</Text>
+                </View>
+              ) : !docsHasMore ? (
+                <Text style={styles.footerText}>No more documents</Text>
+              ) : null
+            }
+          />
+        )}
+      </ScrollView>
+      <TouchableOpacity style={styles.fab} onPress={handleLogout} activeOpacity={0.85}>
+        <Text style={styles.fabText}>Logout</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -349,23 +352,23 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: 'center',
   },
-   Title: {
+  Title: {
     fontSize: 20,
     fontWeight: '600',
     color: '#222',
-    marginLeft:5,
+    marginLeft: 5,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#222',
-    padding:8
+    padding: 8,
   },
   viewAll: {
     fontSize: 13,
     color: '#3b82f6',
     fontWeight: '600',
-    padding:10
+    padding: 10,
   },
   docIcon: {
     width: '100%',
@@ -403,33 +406,19 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     color: 'red',
   },
-  
-bottomBar: {
-//  position: 'absolute',
-//   right: 16,
-//   bottom: 0,
-//   backgroundColor: '#f3f4f6',
-//   paddingVertical: 10,
-//   paddingHorizontal: 14,
-//   borderRadius: 8,
-//   elevation: 5, // Android shadow
-//   shadowColor: '#000', // iOS shadow
-//   shadowOpacity: 0.2,
-//    shadowRadius: 4,
-//   shadowOffset: { width: 0, height: 2 },
-marginTop:80,
-marginLeft:300,
-backgroundColor: '#1e90ff',
-  paddingVertical: 10,
-  paddingHorizontal: 14,
-  borderRadius: 8,
-  elevation: 5, 
-},
-
-bottomText: {
- fontSize: 14,
-  fontWeight: '600',
-  color: '#fff',
- 
-}
+  fab: {
+    position: 'absolute',
+    right: 16,
+    bottom: 10,
+    backgroundColor: '#1e90ff',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 24,
+    elevation: 6,
+  },
+  fabText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
+  },
 });

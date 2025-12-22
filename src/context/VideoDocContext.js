@@ -8,12 +8,6 @@ export const DataContext = createContext(null);
 export function DataProvider({ children }) {
   const { idToken } = useContext(AuthContext);
 
-  /**
-   * Maps Pexels video items to your app's item shape:
-   * { id, title, thumbnail, url }
-   * - thumbnail: use `image` or the first frame from `video_pictures`
-   * - url: choose a playable MP4 link from `video_files`
-   */
   const mapPexelsItems = (videos = []) =>
     videos.map((v) => {
       const files = Array.isArray(v?.video_files) ? v.video_files : [];
@@ -39,7 +33,7 @@ export function DataProvider({ children }) {
         id: String(v?.id ?? Math.random().toString(36)),
         title,
         thumbnail: thumb,
-        url: best?.link || v?.url || '', // prefer direct file link for players; fallback to page URL
+        url: best?.link || v?.url || '',
       };
     });
 
@@ -84,6 +78,7 @@ export function DataProvider({ children }) {
       const url =
         `https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}` +
         `&per_page=${pageSize}&page=${page}`;
+        console.log('Fetching Pexels videos from URL:', url);
 
       const res = await fetch(url, { headers: { Authorization: PEXELS_API_KEY } });
       const json = await res.json();
