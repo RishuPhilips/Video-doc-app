@@ -96,7 +96,7 @@ This app follows a simple architecture:
   First, create the project using the command npx react-native init MyVideoApp, then set up the environment by configuring JAVA_HOME, ANDROID_HOME, and the Android SDK path, and finally install dependencies by running npm install.
 
   ## API Used
-  https://www.googleapis.com/youtube/v3/search (for YouTube Video)
+  https://api.pexels.com/videos (for YouTube Video)
   https://api.openalex.org/works (for document)
 
   ## Folder structure

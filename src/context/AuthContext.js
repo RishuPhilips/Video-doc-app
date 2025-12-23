@@ -80,7 +80,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-
   const refreshToken = async () => {
     try {
       const u = auth().currentUser;
