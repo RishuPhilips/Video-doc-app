@@ -66,6 +66,7 @@ function Consumer() {
   );
 }
 
+
 const renderWithProvider = () =>
   render(
     <AuthProvider>
