@@ -1,4 +1,3 @@
-
 import React, {
   useCallback,
   useEffect,
@@ -18,9 +17,7 @@ import {
   BackHandler,
   AppState,
 } from 'react-native';
-// ❌ remove YoutubePlayer
-// import YoutubePlayer from 'react-native-youtube-iframe';
-import Video from 'react-native-video'; // ✅ native video player
+import Video from 'react-native-video';
 import Orientation from 'react-native-orientation-locker';
 import AndroidPip from '@videosdk.live/react-native-pip-android';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
@@ -49,7 +46,7 @@ export default function VideosScreen() {
   const inlineRef = useRef(null);
   const fullRef = useRef(null);
 
-  const [savedTime, setSavedTime] = useState(0);   // track playback time via onProgress
+  const [savedTime, setSavedTime] = useState(0); 
   const [wasPlaying, setWasPlaying] = useState(true);
 
   const bootstrap = useCallback(async () => {
@@ -57,8 +54,6 @@ export default function VideosScreen() {
     setLoading(true);
     try {
       const res = await getVideosFirstPage({ query: 'react native tutorials', pageSize: 10 });
-      // If you still receive YouTube items sometimes, they won’t play in <Video />
-      // Make sure your provider maps Pexels items with item.url pointing to MP4
       const list = (res.items && res.items.length > 0) ? res.items : SAMPLE_LIST;
       setItems(list);
     } catch (e) {
@@ -80,7 +75,6 @@ export default function VideosScreen() {
     };
   }, [bootstrap]);
 
-  // Android PiP (you can keep this or switch to react-native-video's PiP methods)
   const enterPip = () => {
     try {
       AndroidPip.enterPipMode?.();
@@ -144,7 +138,6 @@ export default function VideosScreen() {
             </TouchableOpacity>
           ) : (
             <View style={styles.playerInline}>
-              {/* If you still feed YouTube links, show a fallback message */}
               {isYouTube ? (
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ color: '#fff', padding: 12 }}>
@@ -210,7 +203,6 @@ export default function VideosScreen() {
         />
       )}
 
-      {/* Fullscreen modal using react-native-video */}
       <Modal visible={!!fullscreenItem} animationType="fade" onRequestClose={exitFullscreen}>
         <View style={styles.modal}>
           {fullscreenItem && (
