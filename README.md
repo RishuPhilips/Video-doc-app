@@ -104,11 +104,11 @@ This app follows a simple architecture:
 root/
 ├── android/
 ├── src/
-│   ├── navigation/      # for screen navigation
-│   ├── context/         # Context API for global state
-│   ├── screens/         # Registration, Login, Home, Video, Document
-│   └── constant/        # for API Key
-├── App.tsx              # Entry point
+│   ├── navigation/          # for screen navigation
+│   ├── context/             # Context API for global state
+│   ├── screens/             # Registration, Login, Home, Video, Document
+│   └── constant/            # for API Key
+├── App.tsx                  # Entry point
 └── README.md
 
 
