@@ -100,7 +100,6 @@ This app follows a simple architecture:
   https://api.openalex.org/works (for document)
 
   ## Folder structure
-  ```text
   root/
 ├── android/           
 ├── src/
@@ -110,7 +109,7 @@ This app follows a simple architecture:
 |   |__ constant        # for API Key
 ├── App.tsx             # Entry point
 └── README.md  
-```
+
 
 # Troubleshooting
 
