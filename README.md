@@ -100,18 +100,17 @@ This app follows a simple architecture:
   https://api.openalex.org/works (for document)
 
   ## Folder structure
-
-root/
-├── android/
+  ```text
+  root/
+├── android/           
 ├── src/
-│   ├── navigation/          # for screen navigation
-│   ├── context/             # Context API for global state
-│   ├── screens/             # Registration, Login, Home, Video, Document
-│   └── constant/            # for API Key
-├── App.tsx                  # Entry point
-└── README.md
-
-
+|   |__navigation       # for screen navigation
+│   |__ context/        # Context API for global state
+│   |__ screens/        # Registration, Login, Home, Video, Document
+|   |__ constant        # for API Key
+├── App.tsx             # Entry point
+└── README.md  
+```
 
 # Troubleshooting
 
